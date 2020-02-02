@@ -6,14 +6,16 @@ Available noise functions:
  - Perlin Noise 2D
 
 ## Performance
-Code compiled with Clang 9.0.0 x64 and ran on Intel i7-8700k.
-
+Compiled with Clang 9 x64 and benchmarked on AMD Ryzen 9 3900X on Arch Linux (A in the table) and Intel i7-8700k on Windows 10 64 bit (I):
 ### 4k texture 8 octaves (average of 100 runs)
-| Function | AVX   |
-|----------|-------|
-| Perlin   | 94ms |
+| Function   | AVX  |
+|------------|------|
+| Perlin (A) | 45ms |
+| Perlin (I) | 84ms |
 
 ### 16k texture 8 octaves (average of 100 runs)
-| Function | AVX    |
-|----------|--------|
-| Perlin   | 1267ms |
+| Function   | AVX    |
+|------------|--------|
+| Perlin (A) | 653ms  |
+| Perlin (I) | 1267ms |
+
