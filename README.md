@@ -11,9 +11,9 @@ Code compiled with Clang 9.0.0 x64 and ran on Intel i7-8700k.
 ### 4k texture 8 octaves (average of 100 runs)
 | Function | AVX   |
 |----------|-------|
-| Perlin   | 113ms |
+| Perlin   | 94ms |
 
 ### 16k texture 8 octaves (average of 100 runs)
 | Function | AVX    |
 |----------|--------|
-| Perlin   | 1563ms |
+| Perlin   | 1267ms |
