@@ -10,7 +10,7 @@ namespace anton {
     // size is the size of the texture to be generated. The final texture will be size * size large. Must be a power of 2.
     // octaves must be less than 16.
     //
-    void perlin_2D(float* buffer, uint64_t seed, uint32_t size, uint32_t octaves);
+    void perlin_2D(float* buffer, uint64_t seed, uint32_t size, uint32_t octaves, float persistence);
 } // namespace anton
 
 #endif // !ANTON_NOISE_NOISE_HPP

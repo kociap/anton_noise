@@ -43,13 +43,24 @@ namespace anton {
 
     // TODO: case for size < 8
 
-    void perlin_2D(float* const buffer, u64 const seed, u32 const size, u32 const octaves) {
+    static f32 compute_perlin_2D_value_range(u32 const octaves, f32 const persistence) {
+        f32 range_max = 0.0f;
+        f32 amp = 1.0f;
+        for (u32 octave = 0; octave < octaves; ++octave) {
+            amp *= persistence;
+            range_max += amp;
+        }
+        return 1.0f / range_max;
+    }
+
+    void perlin_2D(float* const buffer, u64 const seed, u32 const size, u32 const octaves, f32 const persistence) {
         std::mt19937 random_engine(seed);
         Gradient_Grid const grid = create_gradient_grid(random_engine);
 
         f32 amplitude = 1.0f;
-        f32 const persistence = 0.5f;
         f32 const size_f32 = size;
+
+        f32 const range_scale = compute_perlin_2D_value_range(octaves, persistence);
         for (u32 octave = 0; octave < octaves; ++octave) {
             amplitude *= persistence;
             u64 const noise_scale = 1 << octave;
@@ -57,7 +68,7 @@ namespace anton {
             if (resample_period >= 8) {
                 f32 const scale_factor_f32 = (f32)noise_scale / size_f32;
                 __m256 const scale_factor = _mm256_set1_ps(scale_factor_f32);
-                __m256 const remap_factor = _mm256_set1_ps(amplitude * 0.5f * 1.4142135f);
+                __m256 const remap_factor = _mm256_set1_ps(range_scale * amplitude * 0.5f * 1.4142135f);
                 for (u64 y = 0; y < size; ++y) {
                     f32 const y_coord = (f32)y * scale_factor_f32;
                     u64 const sample_offset_y = y / resample_period;
@@ -111,6 +122,7 @@ namespace anton {
             } else if (resample_period >= 4) {
                 f32 const scale_factor_f32 = (f32)noise_scale / size_f32;
                 __m128 const scale_factor = _mm_set1_ps(scale_factor_f32);
+                __m128 const remap_factor = _mm_set1_ps(range_scale * amplitude * 0.5f * 1.4142135f);
                 for (u64 y = 0; y < size; ++y) {
                     f32 const y_coord = (f32)y * scale_factor_f32;
                     u64 const sample_offset_y = y / resample_period;
@@ -154,7 +166,7 @@ namespace anton {
 
                             __m128 noise_r0 = _mm_add_ps(_mm_mul_ps(lerped_x1, _mm_set1_ps(y_lerp_factor)), _mm_mul_ps(lerped_x0, _mm_set1_ps(1.0f - y_lerp_factor)));
                             __m128 noise_r1 = _mm_add_ps(noise_r0, _mm_set1_ps(0.7071067f));
-                            __m128 noise_r2 = _mm_mul_ps(noise_r1, _mm_set1_ps(amplitude * 0.5f * 1.4142135f));
+                            __m128 noise_r2 = _mm_mul_ps(noise_r1, remap_factor);
                             __m128 current = _mm_load_ps(buffer + y * size + x);
                             __m128 noise = _mm_add_ps(noise_r2, current);
                             _mm_store_ps(buffer + y * size + x, noise);
@@ -163,7 +175,8 @@ namespace anton {
                 }
             } else {
                 f32 const scale_factor_f32 = (f32)noise_scale / size_f32;
-                __m256 scale_factor = _mm256_set1_ps(scale_factor_f32);
+                __m256 const scale_factor = _mm256_set1_ps(scale_factor_f32);
+                __m256 const remap_factor = _mm256_set1_ps(range_scale * amplitude * 0.5f * 1.4142135f);
                 for (u64 y = 0; y < size; ++y) {
                     f32 const y_coord = (f32)y * scale_factor_f32;
                     u64 const sample_y = y_coord;
@@ -240,7 +253,7 @@ namespace anton {
                         __m256 lerped_x0 = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(_mm256_set1_ps(1.0f), lerp_factor), fac00), _mm256_mul_ps(lerp_factor, fac10));
                         __m256 lerped_x1 = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(_mm256_set1_ps(1.0f), lerp_factor), fac01), _mm256_mul_ps(lerp_factor, fac11));
                         __m256 noise = _mm256_add_ps(_mm256_mul_ps(y_lerp_factor_compl, lerped_x0), _mm256_mul_ps(y_lerp_factor, lerped_x1));
-                        __m256 noise_remapped = _mm256_mul_ps(_mm256_set1_ps(amplitude * 0.5f * 1.4142135f), _mm256_add_ps(_mm256_set1_ps(0.7071067f), noise));
+                        __m256 noise_remapped = _mm256_mul_ps(remap_factor, _mm256_add_ps(_mm256_set1_ps(0.7071067f), noise));
                         __m256 current = _mm256_load_ps(buffer + y * size + x);
                         __m256 value = _mm256_add_ps(noise_remapped, current);
                         _mm256_store_ps(buffer + y * size + x, value);
