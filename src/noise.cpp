@@ -43,7 +43,7 @@ namespace anton {
 
     // TODO: case for size < 8
 
-    void generate_perlin_noise_texture(float* const buffer, u64 const seed, u32 const size, u32 const octaves) {
+    void perlin_2D(float* const buffer, u64 const seed, u32 const size, u32 const octaves) {
         std::mt19937 random_engine(seed);
         Gradient_Grid const grid = create_gradient_grid(random_engine);
 
