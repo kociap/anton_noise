@@ -53,15 +53,15 @@ namespace anton {
         return 1.0f / range_max;
     }
 
-    void perlin_2D(float* const buffer, u64 const seed, u32 const size, u32 const octaves, f32 const persistence) {
+    void perlin_2D(float* const buffer, u64 const seed, u32 const size, u32 const start_octave, u32 const end_octave, f32 const persistence) {
         std::mt19937 random_engine(seed);
         Gradient_Grid const grid = create_gradient_grid(random_engine);
 
         f32 amplitude = 1.0f;
         f32 const size_f32 = size;
 
-        f32 const range_scale = compute_perlin_2D_value_range(octaves, persistence);
-        for (u32 octave = 0; octave < octaves; ++octave) {
+        f32 const range_scale = compute_perlin_2D_value_range(end_octave - start_octave, persistence);
+        for (u32 octave = start_octave; octave < end_octave; ++octave) {
             amplitude *= persistence;
             u64 const noise_scale = 1 << octave;
             u64 const resample_period = size / noise_scale;
